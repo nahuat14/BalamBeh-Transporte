@@ -1,0 +1,13 @@
+# Archivos de Flutter/Dart que no deben subirse
+/build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+# Archivos de configuración de IDE (opcional pero recomendado)
+.idea/
+.vscode/
+*.iml
