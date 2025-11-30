@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
-  // 1. Agregamos la variable para recibir el nombre
+  // Mantenemos la variable userName que ya tenías
   final String userName;
 
-  // 2. Exigimos el nombre en el constructor
   const HomeScreen({super.key, required this.userName});
 
   @override
@@ -17,35 +16,236 @@ class _HomeScreenState extends State<HomeScreen> {
   final Color yellowAccent = const Color(0xFFF4D35E);
   final Color lightGreyBg = const Color(0xFFF5F5F5);
 
-  // Índice para controlar la barra de navegación inferior
   int _selectedIndex = 0;
 
-  // Función para cambiar de pestaña en la barra inferior
+  // Controlador para leer lo que escribe el usuario
+  final TextEditingController _searchController = TextEditingController();
+
+  // --- 1. DATOS SIMULADOS DE RUTAS ---
+  final List<Map<String, dynamic>> availableRoutes = [
+    {
+      "destino": "Oxkutzcab",
+      "origen": "Peto",
+      "asientos": 10,
+      "nombre_ruta": "Peto-Oxkutzcab",
+    },
+    {
+      "destino": "Merida",
+      "origen": "Peto",
+      "asientos": 8,
+      "nombre_ruta": "Peto-Merida",
+    },
+    {
+      "destino": "Tekax",
+      "origen": "Peto",
+      "asientos": 12,
+      "nombre_ruta": "Peto-Tekax",
+    },
+  ];
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      // Aquí iría la lógica para cambiar de pantalla (ej. ir a Historial)
-      // Por ahora solo cambia el icono seleccionado visualmente.
     });
+  }
+
+  // --- 2. LÓGICA DE BÚSQUEDA ---
+  void _searchRoute(String query) {
+    // Quitamos el foco (cierra el teclado)
+    FocusScope.of(context).unfocus();
+
+    if (query.isEmpty) return;
+
+    // Buscamos en la lista si el destino coincide
+    final Map<String, dynamic> foundRoute = availableRoutes.firstWhere(
+      (route) =>
+          route['destino'].toString().toLowerCase() == query.toLowerCase(),
+      orElse: () => {},
+    );
+
+    if (foundRoute.isNotEmpty) {
+      _showResultCard(foundRoute);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("No se encontraron rutas hacia '$query'"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  // --- 3. MOSTRAR TARJETA DE RESULTADO ---
+  void _showResultCard(Map<String, dynamic> route) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // TARJETA BLANCA
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 10,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Título Naranja
+                    Text(
+                      "Transporte encontrado",
+                      style: TextStyle(
+                        color: Colors.orange[800],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // COLUMNA IZQUIERDA
+                        Column(
+                          children: [
+                            Container(
+                              width: 70,
+                              height: 70,
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.location_on_outlined,
+                                color: Colors.white,
+                                size: 35,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              route['nombre_ruta'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 15),
+
+                        // COLUMNA DERECHA
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Parada
+                              RichText(
+                                text: TextSpan(
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14,
+                                    fontFamily: 'Arial',
+                                  ),
+                                  children: [
+                                    const TextSpan(
+                                      text: "Parada : ",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    TextSpan(text: route['destino']),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              // Asientos
+                              const Text(
+                                "Asientos disponibles:",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Text(
+                                "${route['asientos']}",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 24,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              // BOTÓN SOLICITAR
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("¡Solicitud enviada al conductor!"),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: darkBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text(
+                    "Solicitar lugar",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: Colors.white,
 
-      // --- CUERPO PRINCIPAL ---
       body: SafeArea(
         child: Column(
           children: [
-            // 1. CABECERA Y BARRA DE BÚSQUEDA
+            // 1. CABECERA Y BARRA DE BÚSQUEDA INTEGRADA
             Container(
               padding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 30.0),
               decoration: BoxDecoration(
                 color: Colors.white,
-                // Sombra suave abajo para separar la cabecera del mapa
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.1),
@@ -74,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            widget.userName, // Nombre del usuario
+                            widget.userName,
                             style: TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w900, // Extra Bold
@@ -83,7 +283,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      // Icono de Perfil (Círculo con inicial o foto)
                       CircleAvatar(
                         radius: 25,
                         backgroundColor: lightGreyBg,
@@ -94,38 +293,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const SizedBox(height: 25),
 
-                  // Barra de Búsqueda "¿A dónde vas?"
-                  GestureDetector(
-                    onTap: () {
-                      // Acción futura: Abrir pantalla de búsqueda de destino
-                      print("Abrir búsqueda");
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 18,
+                  // CAMBIO PRINCIPAL: TextField directo en lugar de GestureDetector
+                  Container(
+                    decoration: BoxDecoration(
+                      color: lightGreyBg,
+                      borderRadius: BorderRadius.circular(30), // Cápsula
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
                       ),
-                      decoration: BoxDecoration(
-                        color: lightGreyBg,
-                        borderRadius: BorderRadius.circular(30), // Cápsula
-                        border: Border.all(
-                          color: Colors.grey.shade200,
-                        ), // Borde sutil
+                      textInputAction: TextInputAction
+                          .search, // Muestra botón "Buscar" en teclado
+                      decoration: InputDecoration(
+                        hintText: "¿A dónde vas?",
+                        hintStyle: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: darkBlue,
+                          size: 28,
+                        ),
+                        border: InputBorder
+                            .none, // Quitamos borde del input para usar el del Container
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 15,
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.search, color: darkBlue, size: 28),
-                          const SizedBox(width: 15),
-                          Text(
-                            "¿A dónde vas?",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
+                      onSubmitted: (value) {
+                        // Se ejecuta al presionar Enter/Buscar en el teclado
+                        _searchRoute(value.trim());
+                      },
                     ),
                   ),
                 ],
@@ -136,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: Container(
                 width: double.infinity,
-                color: Colors.grey[200], // Color gris simulando el mapa
+                color: Colors.grey[200],
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -168,22 +374,20 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 10,
-              offset: const Offset(0, -5), // Sombra hacia arriba
+              offset: const Offset(0, -5),
             ),
           ],
         ),
         child: BottomNavigationBar(
           backgroundColor: Colors.white,
-          elevation:
-              0, // Quitamos la elevación por defecto para usar nuestra sombra
-          selectedItemColor: darkBlue, // Color del icono activo
-          unselectedItemColor: Colors.grey[400], // Color de los inactivos
+          elevation: 0,
+          selectedItemColor: darkBlue,
+          unselectedItemColor: Colors.grey[400],
           showSelectedLabels: true,
           showUnselectedLabels: true,
-          type: BottomNavigationBarType
-              .fixed, // Para que quepan bien 3 o más iconos
-          currentIndex: _selectedIndex, // Controla cuál está activo
-          onTap: _onItemTapped, // Función al tocar
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.home_filled),

@@ -10,6 +10,8 @@ import 'screens/register_screen.dart';
 import 'screens/register_driver_screen.dart';
 import 'screens/home_screen.dart';
 
+import 'screens/driver_home_screen.dart';
+
 void main() {
   runApp(const MiAppTransporte());
 }
@@ -51,6 +53,8 @@ class MiAppTransporte extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
 
         '/registerDriver': (context) => const RegisterDriverScreen(),
+
+        '/homeDriver': (context) => const DriverHomeScreen(),
 
         //'/home': (context) => const HomeScreen(),
       },
