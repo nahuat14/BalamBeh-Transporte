@@ -154,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Navegar a registro de conductor
+                        Navigator.pushNamed(context, '/registerDriver');
                       },
                       child: Text(
                         "Crear cuenta aquí",

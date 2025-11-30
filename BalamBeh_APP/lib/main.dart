@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 // Asegúrate de que el archivo se llame 'splash_screen.dart' en la carpeta screens
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/login_screen_Conductor.dart';
 import 'screens/register_screen.dart';
 
 import 'screens/register_driver_screen.dart';
@@ -47,6 +48,8 @@ class MiAppTransporte extends StatelessWidget {
         '/splash': (context) => const SplashScreen(),
 
         '/login': (context) => const LoginScreen(),
+
+        '/loginDriver': (context) => const LoginScreen_Conductor(),
 
         '/register': (context) => const RegisterScreen(),
 

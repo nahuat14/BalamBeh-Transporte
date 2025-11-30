@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class LoginScreen_Conductor extends StatefulWidget {
+  const LoginScreen_Conductor({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginScreen_Conductor> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen_Conductor> {
   // --- 1. PALETA DE COLORES ---
   final Color darkBlue = const Color(0xFF0D3B66);
   final Color yellowBorder = const Color(0xFFF4D35E);
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    "BalamBeh",
+                    "BalamBeh Conductores",
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900, // Extra grueso
@@ -131,19 +131,19 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: Column(
                   children: [
-                    _buildFooterLink(
-                      question: "¿Eres conductor? ",
-                      action: "Inicia sesión aquí",
-                      onTap: () {
-                        Navigator.pushNamed(context, '/loginDriver');
-                      },
-                    ),
+                    //_buildFooterLink(
+                    //question: "¿Eres conductor? ",
+                    //action: "Inicia sesión aquí",
+                    //onTap: () {
+                    //Navigator.pushNamed(context, '/registerDriver');
+                    //},
+                    //),
                     const SizedBox(height: 8),
                     _buildFooterLink(
                       question: "¿No tienes cuenta? ",
                       action: "Regístrate",
                       onTap: () {
-                        Navigator.pushNamed(context, '/register');
+                        Navigator.pushNamed(context, '/registerDriver');
                       },
                     ),
                   ],

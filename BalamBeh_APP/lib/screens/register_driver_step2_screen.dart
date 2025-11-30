@@ -197,7 +197,7 @@ class _RegisterDriverStep2ScreenState extends State<RegisterDriverStep2Screen> {
                     // Regresar al login
                     Navigator.pushNamedAndRemoveUntil(
                       context,
-                      '/login',
+                      '/loginDriver',
                       (route) => false,
                     );
                   },
