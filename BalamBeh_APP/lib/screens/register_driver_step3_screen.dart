@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:io'; // Necesario para manejar el archivo de la imagen
 import 'package:image_picker/image_picker.dart'; // Paquete para seleccionar imágenes
+import 'package:balanbeh_transporte/services/auth_service.dart';
 
 class RegisterDriverStep3Screen extends StatefulWidget {
-  const RegisterDriverStep3Screen({super.key});
+  final Map<String, dynamic> receivedData;
+
+  const RegisterDriverStep3Screen({super.key, required this.receivedData});
 
   @override
   State<RegisterDriverStep3Screen> createState() =>
@@ -43,6 +46,59 @@ class _RegisterDriverStep3ScreenState extends State<RegisterDriverStep3Screen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudo seleccionar la imagen')),
       );
+    }
+  }
+
+  void _finishRegister() async {
+    if (_marcaModeloController.text.isEmpty ||
+        _anioController.text.isEmpty ||
+        _tipoController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Faltan datos del vehículo")),
+      );
+      return;
+    }
+
+    // Armamos el paquete final
+    final finalData = Map<String, dynamic>.from(widget.receivedData);
+    finalData['vehiculo'] = _marcaModeloController.text.trim();
+    finalData['año_vehiculo'] = _anioController.text.trim();
+    finalData['tipo_vehiculo'] = _tipoController.text.trim();
+    // Por ahora mandamos null porque el backend espera string/url, no bytes de imagen aun
+    finalData['tarjeta_circulacion_url'] = null;
+
+    // Loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // Llamada al servidor
+    final result = await AuthService.registerConductor(finalData);
+
+    if (context.mounted) Navigator.pop(context); // Quitar loading
+
+    if (result['success']) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("¡Registro Exitoso!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Volver al inicio (Login)
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -184,25 +240,7 @@ class _RegisterDriverStep3ScreenState extends State<RegisterDriverStep3Screen> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Validamos que haya subido la imagen (opcional)
-                    if (_tarjetaCirculacionImage == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Por favor sube la tarjeta de circulación',
-                          ),
-                        ),
-                      );
-                      return;
-                    }
-                    // Finaliza el registro y va al Home
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/home',
-                      (route) => false,
-                    );
-                  },
+                  onPressed: _finishRegister,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkBlue,
                     elevation: 0,

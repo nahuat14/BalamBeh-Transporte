@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:balanbeh_transporte/screens/register_driver_step2_screen.dart';
 
 class RegisterDriverScreen extends StatefulWidget {
   const RegisterDriverScreen({super.key});
@@ -18,6 +19,45 @@ class _RegisterDriverScreenState extends State<RegisterDriverScreen> {
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _confirmPassController = TextEditingController();
+
+  void _goToStep2() {
+    String nombre = _nameController.text.trim();
+    String user = _userController.text.trim();
+    String pass = _passController.text.trim();
+    String confirm = _confirmPassController.text.trim();
+
+    // 1. Validaciones
+    if (nombre.isEmpty || user.isEmpty || pass.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Todos los campos son obligatorios")),
+      );
+      return;
+    }
+    if (pass != confirm) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Las contraseñas no coinciden")),
+      );
+      return;
+    }
+    if (pass.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("La contraseña es muy corta (mín. 6)")),
+      );
+      return;
+    }
+
+    // 2. Empaquetar Datos
+    final step1Data = {'nombre': nombre, 'username': user, 'contraseña': pass};
+
+    // 3. Ir al Paso 2
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            RegisterDriverStep2Screen(receivedData: step1Data),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,14 +161,7 @@ class _RegisterDriverScreenState extends State<RegisterDriverScreen> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Aquí iríamos al paso 2 (datos del vehículo)
-                    // Por ahora simulamos que entra al home
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/registerDriverStep2',
-                    );
-                  },
+                  onPressed: _goToStep2,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkBlue,
                     elevation: 0,

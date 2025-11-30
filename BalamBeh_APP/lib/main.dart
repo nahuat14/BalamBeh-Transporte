@@ -8,9 +8,6 @@ import 'screens/login_screen_Conductor.dart';
 import 'screens/register_screen.dart';
 
 import 'screens/register_driver_screen.dart';
-import 'screens/register_driver_step2_screen.dart';
-import 'screens/register_driver_step3_screen.dart';
-
 import 'screens/home_screen.dart';
 
 void main() {
@@ -55,11 +52,7 @@ class MiAppTransporte extends StatelessWidget {
 
         '/registerDriver': (context) => const RegisterDriverScreen(),
 
-        '/registerDriverStep2': (context) => const RegisterDriverStep2Screen(),
-
-        '/registerDriverStep3': (context) => const RegisterDriverStep3Screen(),
-
-        '/home': (context) => const HomeScreen(),
+        //'/home': (context) => const HomeScreen(),
       },
     );
   }

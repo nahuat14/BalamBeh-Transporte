@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  // 1. Agregamos la variable para recibir el nombre
+  final String userName;
+
+  // 2. Exigimos el nombre en el constructor
+  const HomeScreen({super.key, required this.userName});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -70,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            "Christian", // Nombre del usuario
+                            widget.userName, // Nombre del usuario
                             style: TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w900, // Extra Bold

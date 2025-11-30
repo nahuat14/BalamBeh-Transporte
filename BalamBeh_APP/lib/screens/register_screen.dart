@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:balanbeh_transporte/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,6 +20,72 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _confirmPassController = TextEditingController();
+
+  void _handleRegister() async {
+    final nombre = _nameController.text.trim();
+    final username = _userController.text.trim();
+    final password = _passController.text.trim();
+    final confirmPass = _confirmPassController.text.trim();
+
+    // 1. Validaciones Locales
+    if (nombre.isEmpty ||
+        username.isEmpty ||
+        password.isEmpty ||
+        confirmPass.isEmpty) {
+      _showMessage("Por favor completa todos los campos", Colors.orange);
+      return;
+    }
+
+    if (password != confirmPass) {
+      _showMessage("Las contraseñas no coinciden", Colors.red);
+      return;
+    }
+
+    if (password.length < 6) {
+      _showMessage(
+        "La contraseña debe tener al menos 6 caracteres",
+        Colors.orange,
+      );
+      return;
+    }
+
+    // 2. Mostrar Carga
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // 3. Llamar al Backend
+    final result = await AuthService.registerClient(nombre, username, password);
+
+    // Cerrar carga
+    if (context.mounted) Navigator.of(context).pop();
+
+    // 4. Manejar Respuesta
+    if (result['success']) {
+      if (context.mounted) {
+        _showMessage("¡Cuenta creada! Inicia sesión ahora.", Colors.green);
+        // Esperar un poquito para que el usuario lea el mensaje
+        await Future.delayed(const Duration(seconds: 2));
+        if (context.mounted) {
+          // Volver al Login para que ingresen sus credenciales
+          Navigator.pop(context);
+        }
+      }
+    } else {
+      if (context.mounted) {
+        _showMessage(result['message'] ?? "Error en el registro", Colors.red);
+      }
+    }
+  }
+
+  // Método auxiliar para mostrar Snackbars
+  void _showMessage(String message, Color color) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,11 +185,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Aquí iría la lógica de registro
-                    // Por ahora volvemos al login o vamos al home
-                    Navigator.pushReplacementNamed(context, '/home');
-                  },
+                  onPressed: _handleRegister,
+
+                  //{
+                  //Navigator.pushReplacementNamed(context, '/home');
+                  //},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkBlue,
                     elevation: 0,

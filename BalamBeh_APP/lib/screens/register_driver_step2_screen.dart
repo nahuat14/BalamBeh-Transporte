@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:balanbeh_transporte/screens/register_driver_step3_screen.dart';
 
 class RegisterDriverStep2Screen extends StatefulWidget {
-  const RegisterDriverStep2Screen({super.key});
+  final Map<String, dynamic> receivedData;
+
+  const RegisterDriverStep2Screen({super.key, required this.receivedData});
 
   @override
   State<RegisterDriverStep2Screen> createState() =>
@@ -50,9 +53,37 @@ class _RegisterDriverStep2ScreenState extends State<RegisterDriverStep2Screen> {
     if (picked != null) {
       setState(() {
         // Formateamos la fecha como DD/MM/AAAA
-        _ageController.text = "${picked.day}/${picked.month}/${picked.year}";
+        _ageController.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
+  }
+
+  void _goToStep3() {
+    if (_ageController.text.isEmpty ||
+        _locationController.text.isEmpty ||
+        _rfcController.text.isEmpty ||
+        _phoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor llena todos los campos")),
+      );
+      return;
+    }
+
+    // Copiamos datos anteriores y sumamos los nuevos
+    final currentData = Map<String, dynamic>.from(widget.receivedData);
+    currentData['fecha_nacimiento'] = _ageController.text;
+    currentData['localidad'] = _locationController.text.trim();
+    currentData['rfc'] = _rfcController.text.trim();
+    currentData['numero'] = _phoneController.text.trim();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            RegisterDriverStep3Screen(receivedData: currentData),
+      ),
+    );
   }
 
   @override
@@ -162,14 +193,7 @@ class _RegisterDriverStep2ScreenState extends State<RegisterDriverStep2Screen> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Aquí iría la lógica para el siguiente paso (vehículo) o finalizar
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/registerDriverStep3',
-                      (route) => false,
-                    );
-                  },
+                  onPressed: _goToStep3,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkBlue,
                     elevation: 0,

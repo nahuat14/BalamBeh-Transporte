@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:balanbeh_transporte/services/auth_service.dart'; // Tu ruta de servicio
+import 'home_screen.dart'; // <--- 1. IMPORTANTE: Importamos el Home
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,8 +16,69 @@ class _LoginScreenState extends State<LoginScreen> {
   final Color lightGreyFill = const Color(0xFFF5F5F5);
   final Color linkColor = const Color(0xFFEAA900);
 
+  // Nota: Usamos emailController para capturar el "usuario"
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  // Función para manejar el login
+  void _handleLogin() async {
+    final username = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // 1. Validación básica
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Por favor llena todos los campos"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // 2. Mostrar indicador de carga
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // 3. Llamada al Servicio
+    final result = await AuthService.loginClient(username, password);
+
+    // Cerrar el indicador de carga
+    if (context.mounted) Navigator.of(context).pop();
+
+    // 4. Procesar respuesta
+    if (result['success']) {
+      if (context.mounted) {
+        // --- AQUÍ CAPTURAMOS EL NOMBRE DEL CLIENTE ---
+        // El backend nos manda: {'success': true, 'data': {'nombre': 'Juan', ...}}
+        final data = result['data'];
+        // Si por alguna razón el nombre viene vacío, ponemos "Cliente" por defecto
+        final String nombreCliente = data['nombre'] ?? "Cliente";
+
+        // --- NAVEGAMOS AL HOME ENVIANDO EL NOMBRE ---
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            // Le pasamos el nombre a la pantalla Home
+            builder: (context) => HomeScreen(userName: nombreCliente),
+          ),
+        );
+      }
+    } else {
+      // ERROR: Mostrar mensaje
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? "Error desconocido"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     "BalamBeh",
                     style: TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.w900, // Extra grueso
+                      fontWeight: FontWeight.w900,
                       color: darkBlue,
                     ),
                   ),
@@ -61,18 +124,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       "Bienvenido",
                       style: TextStyle(
                         fontSize: 34,
-                        // AQUÍ EL CAMBIO: Usamos w900 (Black) para que se vea bien gordo
                         fontWeight: FontWeight.w900,
                         color: darkBlue,
-                        letterSpacing:
-                            -0.5, // Un poco más pegadito como Poppins
+                        letterSpacing: -0.5,
                       ),
                     ),
                     Text(
-                      "Inicia sesion",
+                      "Inicia sesión",
                       style: TextStyle(
                         fontSize: 22,
-                        fontWeight: FontWeight.w300, // Light
+                        fontWeight: FontWeight.w300,
                         color: darkBlue,
                       ),
                     ),
@@ -99,14 +160,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 60),
 
-              // --- BOTÓN ---
+              // --- BOTÓN LOGIN ---
               SizedBox(
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/home');
-                  },
+                  onPressed: _handleLogin, // <--- Llamada a la función
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkBlue,
                     elevation: 0,
@@ -115,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   child: const Text(
-                    "Iniciar sesion",
+                    "Iniciar sesión",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -161,34 +220,22 @@ class _LoginScreenState extends State<LoginScreen> {
     required TextEditingController controller,
     required bool obscureText,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      style: TextStyle(color: darkBlue, fontWeight: FontWeight.w500),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(
-          color: Colors.grey[600],
-          fontWeight: FontWeight.w400,
+    return Container(
+      decoration: BoxDecoration(
+        color: lightGreyFill,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscureText,
+        decoration: InputDecoration(
+          hintText: hintText,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 20,
+          ),
         ),
-        filled: true,
-        fillColor: lightGreyFill,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 20,
-        ),
-
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: yellowBorder, width: 1.0),
-        ),
-
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: darkBlue, width: 2.0),
-        ),
-
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
       ),
     );
   }
@@ -198,25 +245,20 @@ class _LoginScreenState extends State<LoginScreen> {
     required String action,
     required VoidCallback onTap,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          question,
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
-        ),
-        GestureDetector(
-          onTap: onTap,
-          child: Text(
-            action,
-            style: TextStyle(
-              fontSize: 13,
-              color: linkColor,
-              fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: onTap,
+      child: RichText(
+        text: TextSpan(
+          text: question,
+          style: TextStyle(color: darkBlue, fontSize: 16),
+          children: [
+            TextSpan(
+              text: action,
+              style: TextStyle(color: linkColor, fontWeight: FontWeight.bold),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

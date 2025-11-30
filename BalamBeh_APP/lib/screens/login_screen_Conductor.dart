@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:balanbeh_transporte/services/auth_service.dart';
+import 'package:balanbeh_transporte/screens/home_screen.dart';
 
 class LoginScreen_Conductor extends StatefulWidget {
   const LoginScreen_Conductor({super.key});
@@ -14,8 +16,58 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
   final Color lightGreyFill = const Color(0xFFF5F5F5);
   final Color linkColor = const Color(0xFFEAA900);
 
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _userController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  void _handleLogin() async {
+    final username = _userController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor llena todos los campos")),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // LLAMADA AL LOGIN DE CONDUCTOR
+    final result = await AuthService.loginConductor(username, password);
+
+    if (context.mounted) Navigator.of(context).pop();
+
+    if (result['success']) {
+      if (context.mounted) {
+        // --- AQUÍ CAPTURAMOS EL NOMBRE ---
+        // El backend ahora nos manda: {'success': true, 'data': {'nombre': 'Juan', ...}}
+        final data = result['data'];
+        final String nombreConductor =
+            data['nombre'] ?? "Usuario"; // Fallback por si acaso
+
+        // Navegamos al Home pasándole el nombre
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(userName: nombreConductor),
+          ),
+        );
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
               // --- INPUTS ---
               _buildCustomInput(
                 hintText: "Usuario",
-                controller: _emailController,
+                controller: _userController,
                 obscureText: false,
               ),
 
@@ -104,9 +156,10 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/home');
-                  },
+                  onPressed: _handleLogin,
+                  //onPressed: () {
+                  //Navigator.pushReplacementNamed(context, '/home');
+                  //},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkBlue,
                     elevation: 0,
