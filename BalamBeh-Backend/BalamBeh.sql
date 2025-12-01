@@ -1,7 +1,5 @@
-DROP DATABASE IF EXISTS BALAMBEH; 
-
+DROP DATABASE IF EXISTS BALAMBEH;
 CREATE DATABASE BALAMBEH;
-
 USE BALAMBEH;
 
 -- 1. Tabla de Clientes
@@ -9,7 +7,7 @@ CREATE TABLE CLIENTES (
     ID_CLIENTE INT AUTO_INCREMENT PRIMARY KEY,
     NOMBRE VARCHAR(100) NOT NULL,
     NOMBREUSER VARCHAR(30) UNIQUE NOT NULL,
-    CONTRASEÑA VARCHAR(255) NOT NULL 
+    CONTRASEÑA VARCHAR(255) NOT NULL
 );
 
 -- 2. Tabla de Conductores
@@ -17,8 +15,8 @@ CREATE TABLE CONDUCTORES (
     ID_CONDUCTOR INT AUTO_INCREMENT PRIMARY KEY,
     NOMBRE VARCHAR(100) NOT NULL,
     USERNAME VARCHAR(50) UNIQUE NOT NULL,
-    CONTRASEÑA VARCHAR(25 5) NOT NULL, 
-    FECHA_NACIMIENTO DATE NOT NULL, 
+    CONTRASEÑA VARCHAR(255) NOT NULL, 
+    FECHA_NACIMIENTO DATE NOT NULL,
     LOCALIDAD VARCHAR(30) NOT NULL,
     RFC VARCHAR(13) UNIQUE NOT NULL,
     NUMERO VARCHAR(15) UNIQUE NOT NULL,
@@ -33,7 +31,7 @@ CREATE TABLE RUTAS (
     ID_RUTA INT AUTO_INCREMENT PRIMARY KEY,
     NOMBRE_RUTA VARCHAR(100) NOT NULL,
     ORIGEN VARCHAR(50) NOT NULL,
-    DESTINO VARCHAR(50) NOT NULL,
+    DESTINO VARCHAR(50) NOT NULL
 );
 
 -- 4. Tabla PARADAS_RUTA
@@ -60,19 +58,16 @@ CREATE TABLE VIAJES_ACTIVOS (
 
 CREATE TABLE SOLICITUDES (
     ID_SOLICITUD INT AUTO_INCREMENT PRIMARY KEY,
-    ID_VIAJE INT NOT NULL,       -- A qué viaje se quiere subir
-    ID_CLIENTE INT NOT NULL,     -- Quién lo pide (necesitas pasar el ID del cliente)
-    NOMBRE_CLIENTE VARCHAR(100), -- Guardamos el nombre para mostrarlo rápido al chofer
+    ID_VIAJE INT NOT NULL,
+    ID_CLIENTE INT NOT NULL,
+    NOMBRE_CLIENTE VARCHAR(100),
     ESTADO ENUM('PENDIENTE', 'ACEPTADO', 'RECHAZADO') DEFAULT 'PENDIENTE',
     FOREIGN KEY (ID_VIAJE) REFERENCES VIAJES_ACTIVOS(ID_VIAJE)
-    -- Si tienes FK de clientes activada: FOREIGN KEY (ID_CLIENTE) REFERENCES CLIENTES(ID_CLIENTE)
 );
 
 
-USE BALAMBEH;
-
 -- ==========================================================
--- 1. LIMPIEZA PREVIA (Para evitar duplicados si corres esto varias veces)
+-- DML (Inserción de Datos)
 -- ==========================================================
 DELETE FROM SOLICITUDES;
 DELETE FROM VIAJES_ACTIVOS;
@@ -80,77 +75,38 @@ DELETE FROM PARADAS_RUTA;
 DELETE FROM RUTAS;
 ALTER TABLE RUTAS AUTO_INCREMENT = 1;
 
--- ==========================================================
--- 2. INSERTAR RUTAS (Adaptado a tu tabla: SIN columna asientos)
--- ==========================================================
-
--- Ruta 1
+-- 2. INSERTAR RUTAS
 INSERT INTO RUTAS (ID_RUTA, NOMBRE_RUTA, ORIGEN, DESTINO) 
-VALUES (1, 'Ruta: Peto - Mérida (Vía Corta)', 'Peto', 'Mérida');
+VALUES 
+(1, 'Ruta: Peto - Mérida (Vía Corta)', 'Peto', 'Mérida'),
+(2, 'Ruta: Tekax - Ticul - Muna', 'Tekax', 'Muna'),
+(3, 'Ruta: Oxkutzcab - Mérida (Directo)', 'Oxkutzcab', 'Mérida'),
+(4, 'Ruta: Tzucacab - Tekax', 'Tzucacab', 'Tekax');
 
--- Ruta 2
-INSERT INTO RUTAS (ID_RUTA, NOMBRE_RUTA, ORIGEN, DESTINO) 
-VALUES (2, 'Ruta: Tekax - Ticul - Muna', 'Tekax', 'Muna');
-
--- Ruta 3
-INSERT INTO RUTAS (ID_RUTA, NOMBRE_RUTA, ORIGEN, DESTINO) 
-VALUES (3, 'Ruta: Oxkutzcab - Mérida (Directo)', 'Oxkutzcab', 'Mérida');
-
--- Ruta 4
-INSERT INTO RUTAS (ID_RUTA, NOMBRE_RUTA, ORIGEN, DESTINO) 
-VALUES (4, 'Ruta: Tzucacab - Tekax', 'Tzucacab', 'Tekax');
-
-
--- ==========================================================
--- 3. INSERTAR LAS PARADAS (Igual que antes, esto sí coincide)
--- ==========================================================
-
+-- 3. INSERTAR LAS PARADAS
 -- --- Paradas de Ruta 1 ---
 INSERT INTO PARADAS_RUTA (ID_RUTA, NOMBRE_PUEBLO, ORDEN) VALUES 
-(1, 'Peto', 1),
-(1, 'Tzucacab', 2),
-(1, 'Tekax', 3),
-(1, 'Akil', 4),
-(1, 'Oxkutzcab', 5),
-(1, 'Mani', 6),
-(1, 'Teabo', 7),
-(1, 'Mérida', 8);
+(1, 'Peto', 1), (1, 'Tzucacab', 2), (1, 'Tekax', 3), (1, 'Akil', 4), (1, 'Oxkutzcab', 5), 
+(1, 'Mani', 6), (1, 'Teabo', 7), (1, 'Mérida', 8);
 
 -- --- Paradas de Ruta 2 ---
 INSERT INTO PARADAS_RUTA (ID_RUTA, NOMBRE_PUEBLO, ORDEN) VALUES 
-(2, 'Tekax', 1),
-(2, 'Akil', 2),
-(2, 'Oxkutzcab', 3),
-(2, 'Yotholin', 4),
-(2, 'Pustunich', 5),
-(2, 'Ticul', 6),
-(2, 'Santa Elena', 7),
-(2, 'Muna', 8);
+(2, 'Tekax', 1), (2, 'Akil', 2), (2, 'Oxkutzcab', 3), (2, 'Yotholin', 4), 
+(2, 'Pustunich', 5), (2, 'Ticul', 6), (2, 'Santa Elena', 7), (2, 'Muna', 8);
 
 -- --- Paradas de Ruta 3 ---
 INSERT INTO PARADAS_RUTA (ID_RUTA, NOMBRE_PUEBLO, ORDEN) VALUES 
-(3, 'Oxkutzcab', 1),
-(3, 'Ticul', 2),
-(3, 'Muna', 3),
-(3, 'Uman', 4),
-(3, 'Mérida', 5);
+(3, 'Oxkutzcab', 1), (3, 'Ticul', 2), (3, 'Muna', 3), (3, 'Uman', 4), (3, 'Mérida', 5);
 
 -- --- Paradas de Ruta 4 ---
 INSERT INTO PARADAS_RUTA (ID_RUTA, NOMBRE_PUEBLO, ORDEN) VALUES 
-(4, 'Tzucacab', 1),
-(4, 'Catmís', 2),
-(4, 'Xaya', 3),
-(4, 'Tekax', 4);
-
--- Verificamos que se guardó
+(4, 'Tzucacab', 1), (4, 'Catmís', 2), (4, 'Xaya', 3), (4, 'Tekax', 4);
 
 
 ALTER TABLE PARADAS_RUTA ADD COLUMN LATITUD DOUBLE DEFAULT 0;
 ALTER TABLE PARADAS_RUTA ADD COLUMN LONGITUD DOUBLE DEFAULT 0;
 
 -- 2. Actualizamos las coordenadas de los pueblos principales
--- (Estos son datos reales de GPS)
-
 -- Zona Peto / Tzucacab
 UPDATE PARADAS_RUTA SET LATITUD = 20.1275, LONGITUD = -88.9264 WHERE NOMBRE_PUEBLO = 'Peto';
 UPDATE PARADAS_RUTA SET LATITUD = 20.0717, LONGITUD = -89.0519 WHERE NOMBRE_PUEBLO = 'Tzucacab';
@@ -176,5 +132,5 @@ UPDATE PARADAS_RUTA SET LATITUD = 20.8833, LONGITUD = -89.7500 WHERE NOMBRE_PUEB
 UPDATE PARADAS_RUTA SET LATITUD = 20.9674, LONGITUD = -89.5926 WHERE NOMBRE_PUEBLO = 'Mérida';
 
 -- Verificar
-SELECT * FROM PARADAS_RUTA;
 SELECT * FROM RUTAS;
+SELECT * FROM PARADAS_RUTA;
