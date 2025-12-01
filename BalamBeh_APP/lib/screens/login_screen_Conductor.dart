@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:balanbeh_transporte/services/auth_service.dart';
-import 'package:balanbeh_transporte/screens/home_screen.dart';
+import '../services/auth_service.dart';
+// 1. IMPORTA LA PANTALLA CORRECTA
+import 'driver_home_screen.dart';
 
 class LoginScreen_Conductor extends StatefulWidget {
   const LoginScreen_Conductor({super.key});
@@ -10,7 +11,7 @@ class LoginScreen_Conductor extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen_Conductor> {
-  // --- 1. PALETA DE COLORES ---
+  // --- PALETA DE COLORES ---
   final Color darkBlue = const Color(0xFF0D3B66);
   final Color yellowBorder = const Color(0xFFF4D35E);
   final Color lightGreyFill = const Color(0xFFF5F5F5);
@@ -19,10 +20,13 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // --- LÓGICA DE LOGIN ---
+  // --- LÓGICA DE LOGIN ---
   void _handleLogin() async {
     final username = _userController.text.trim();
     final password = _passwordController.text.trim();
 
+    // 1. Validaciones básicas
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Por favor llena todos los campos")),
@@ -30,38 +34,51 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
       return;
     }
 
+    // 2. Mostrar círculo de carga
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    // LLAMADA AL LOGIN DE CONDUCTOR
+    // 3. LLAMADA AL SERVIDOR (AuthService)
     final result = await AuthService.loginConductor(username, password);
 
+    // Cerrar el círculo de carga (Checkeamos mounted por seguridad)
     if (context.mounted) Navigator.of(context).pop();
 
+    // 4. Verificar resultado
     if (result['success']) {
       if (context.mounted) {
-        // --- AQUÍ CAPTURAMOS EL NOMBRE ---
-        // El backend ahora nos manda: {'success': true, 'data': {'nombre': 'Juan', ...}}
+        // --- AQUÍ CAPTURAMOS LOS DATOS DE PYTHON ---
         final data = result['data'];
-        final String nombreConductor =
-            data['nombre'] ?? "Usuario"; // Fallback por si acaso
 
-        // Navegamos al Home pasándole el nombre
+        // A. OBTENEMOS EL ID (Con seguridad por si viene como String o Int)
+        // Esto evita errores si el backend manda "5" en vez de 5
+        final int idConductor = int.parse(data['id_conductor'].toString());
+
+        // B. OBTENEMOS EL NOMBRE (EL FIX DEL ERROR ROJO)
+        // Si data['nombre'] es null, usamos "Conductor" por defecto
+        final String nombreConductor =
+            data['nombre']?.toString() ?? "Conductor";
+
+        // 5. NAVEGAR PASANDO LOS DATOS
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomeScreen(userName: nombreConductor),
+            builder: (context) => DriverHomeScreen(
+              conductorId: idConductor, // <--- Dato vital para registrar viajes
+              conductorNombre: nombreConductor, // <--- Dato para el saludo
+            ),
           ),
         );
       }
     } else {
+      // Si falló (contraseña mal o error de conexión)
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message']),
+            content: Text(result['message'] ?? "Error al iniciar sesión"),
             backgroundColor: Colors.red,
           ),
         );
@@ -84,20 +101,17 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
               // --- CABECERA ---
               Row(
                 children: [
-                  Image.asset(
-                    'assets/images/logo.png',
-                    height: 45,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.location_on, color: darkBlue, size: 45);
-                    },
-                  ),
+                  // Icono o Logo
+                  Icon(Icons.directions_bus, color: darkBlue, size: 40),
                   const SizedBox(width: 12),
-                  Text(
-                    "BalamBeh Conductores",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900, // Extra grueso
-                      color: darkBlue,
+                  Expanded(
+                    child: Text(
+                      "BalamBeh Conductores",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: darkBlue,
+                      ),
                     ),
                   ),
                 ],
@@ -113,18 +127,16 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
                       "Bienvenido",
                       style: TextStyle(
                         fontSize: 34,
-                        // AQUÍ EL CAMBIO: Usamos w900 (Black) para que se vea bien gordo
                         fontWeight: FontWeight.w900,
                         color: darkBlue,
-                        letterSpacing:
-                            -0.5, // Un poco más pegadito como Poppins
+                        letterSpacing: -0.5,
                       ),
                     ),
                     Text(
-                      "Inicia sesion",
+                      "Inicia sesión",
                       style: TextStyle(
                         fontSize: 22,
-                        fontWeight: FontWeight.w300, // Light
+                        fontWeight: FontWeight.w300,
                         color: darkBlue,
                       ),
                     ),
@@ -156,10 +168,8 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  //onPressed: _handleLogin,
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/homeDriver');
-                  },
+                  // AQUÍ EL CAMBIO IMPORTANTE: Usamos _handleLogin
+                  onPressed: _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkBlue,
                     elevation: 0,
@@ -168,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
                     ),
                   ),
                   child: const Text(
-                    "Iniciar sesion",
+                    "Iniciar sesión",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -184,18 +194,12 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
               Center(
                 child: Column(
                   children: [
-                    //_buildFooterLink(
-                    //question: "¿Eres conductor? ",
-                    //action: "Inicia sesión aquí",
-                    //onTap: () {
-                    //Navigator.pushNamed(context, '/registerDriver');
-                    //},
-                    //),
                     const SizedBox(height: 8),
                     _buildFooterLink(
                       question: "¿No tienes cuenta? ",
                       action: "Regístrate",
                       onTap: () {
+                        // Asegúrate que esta ruta exista en tu main.dart
                         Navigator.pushNamed(context, '/registerDriver');
                       },
                     ),
@@ -230,17 +234,14 @@ class _LoginScreenState extends State<LoginScreen_Conductor> {
           horizontal: 24,
           vertical: 20,
         ),
-
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide(color: yellowBorder, width: 1.0),
         ),
-
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide(color: darkBlue, width: 2.0),
         ),
-
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
       ),
     );

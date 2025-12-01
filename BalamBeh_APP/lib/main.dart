@@ -54,7 +54,7 @@ class MiAppTransporte extends StatelessWidget {
 
         '/registerDriver': (context) => const RegisterDriverScreen(),
 
-        '/homeDriver': (context) => const DriverHomeScreen(),
+        //'/homeDriver': (context) => const DriverHomeScreen(),
 
         //'/home': (context) => const HomeScreen(),
       },
